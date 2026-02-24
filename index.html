@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calidad de Datos — 6 Dimensiones</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --cream: #f5f0e8;
+    --paper: #faf8f3;
+    --accent: #c8401a;
+    --accent2: #2d6a4f;
+    --accent3: #1d4e8f;
+    --muted: #7a7567;
+    --rule: #d4cfc4;
+    --tag-bg: #e8e3d9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 3rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.12;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 30%;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: var(--accent3);
+    opacity: 0.1;
+  }
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 1.1;
+    color: var(--cream);
+    max-width: 700px;
+  }
+  header h1 em {
+    color: var(--accent);
+    font-style: italic;
+  }
+  .header-sub {
+    margin-top: 1rem;
+    color: #a8a39a;
+    font-weight: 300;
+    max-width: 600px;
+    font-size: 14px;
+  }
+  .header-meta {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #7a7567;
+  }
+  .meta-item span { color: var(--cream); }
+
+  /* NAV TABS */
+  nav {
+    background: var(--ink);
+    border-top: 1px solid #2d2d40;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding: 0 2rem;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: #7a7567;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 0.9rem 1.2rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  nav button:hover { color: var(--cream); }
+  nav button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* CONTENT */
+  main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* SECTION TITLE */
+  .sec-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+  .sec-desc {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  /* DIMENSION CARDS */
+  .dimensions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .dim-card {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .dim-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+
+  .dim-header {
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .dim-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: white;
+    background: var(--ink);
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .dim-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+  }
+  .dim-name small {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    font-style: normal;
+    margin-top: 1px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .dim-body { padding: 1rem 1.25rem; }
+  .dim-def { font-size: 13.5px; color: #444; line-height: 1.5; margin-bottom: 0.75rem; }
+
+  .formula-box {
+    background: var(--cream);
+    border-left: 3px solid var(--accent);
+    padding: 0.6rem 0.85rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+    border-radius: 0 2px 2px 0;
+    line-height: 1.4;
+  }
+
+  .example-tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 2px 7px;
+    border-radius: 2px;
+    margin-bottom: 0.4rem;
+  }
+  .example-text { font-size: 13px; color: #555; font-style: italic; }
+
+  /* COLOR ACCENTS PER CARD */
+  .dim-card:nth-child(1) .dim-num { background: #c8401a; }
+  .dim-card:nth-child(2) .dim-num { background: #2d6a4f; }
+  .dim-card:nth-child(3) .dim-num { background: #1d4e8f; }
+  .dim-card:nth-child(4) .dim-num { background: #7b5ea7; }
+  .dim-card:nth-child(5) .dim-num { background: #b5690f; }
+  .dim-card:nth-child(6) .dim-num { background: #2d5a6e; }
+  .dim-card:nth-child(1) .formula-box { border-color: #c8401a; }
+  .dim-card:nth-child(2) .formula-box { border-color: #2d6a4f; }
+  .dim-card:nth-child(3) .formula-box { border-color: #1d4e8f; }
+  .dim-card:nth-child(4) .formula-box { border-color: #7b5ea7; }
+  .dim-card:nth-child(5) .formula-box { border-color: #b5690f; }
+  .dim-card:nth-child(6) .formula-box { border-color: #2d5a6e; }
+
+  /* THRESHOLD TABLE */
+  .threshold-intro {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 2px;
+    font-size: 13.5px;
+    color: #444;
+  }
+  .threshold-intro strong { color: var(--ink); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid var(--rule);
+    font-size: 13.5px;
+  }
+  thead {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  thead th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  tbody tr { border-bottom: 1px solid var(--rule); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #faf8f0; }
+  tbody td { padding: 0.75rem 1rem; vertical-align: top; }
+  tbody td:first-child { font-family: 'DM Serif Display', serif; font-size: 1rem; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .badge-green { background: #d4edda; color: #155724; }
+  .badge-orange { background: #fff3cd; color: #856404; }
+  .badge-red { background: #f8d7da; color: #721c24; }
+
+  /* FINDINGS TABLE */
+  .findings-note {
+    background: #fff8f0;
+    border: 1px solid #f0d9c0;
+    border-left: 4px solid var(--accent);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 13.5px;
+    border-radius: 0 2px 2px 0;
+  }
+  .findings-note strong { color: var(--accent); }
+
+  .impact-chip {
+    font-size: 11.5px;
+    color: #c8401a;
+    font-style: italic;
+  }
+
+  /* TOOLS SECTION */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .tool-card {
+    background: white;
+    border: 1px solid var(--rule);
+    padding: 1.1rem 1.25rem;
+    border-radius: 2px;
+  }
+  .tool-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem;
+    margin-bottom: 0.3rem;
+  }
+  .tool-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .tool-desc { font-size: 13px; color: #555; }
+
+  .open-source { border-top: 3px solid var(--accent2); }
+  .commercial { border-top: 3px solid var(--accent3); }
+
+  /* SUMMARY BAR */
+  .summary-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-bottom: 2rem;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .summary-item {
+    background: white;
+    padding: 1rem 1.25rem;
+    text-align: center;
+  }
+  .summary-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--accent);
+    display: block;
+  }
+  .summary-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    color: #7a7567;
+    text-align: center;
+    padding: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin-top: 3rem;
+  }
+  footer span { color: var(--cream); }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 1rem; }
+    main { padding: 1.5rem 1rem; }
+    .dimensions-grid { grid-template-columns: 1fr; }
+    .summary-bar { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Framework DAMA · Documentación Académica Replicable</div>
+  <h1>Calidad de <em>Datos</em><br>Las 6 Dimensiones</h1>
+  <p class="header-sub">Documentación académica replicable para la evaluación, medición y auditoría de calidad de datos.</p>
+  <div class="header-meta">
+    <div class="meta-item">Versión <span>1.0</span></div>
+    <div class="meta-item">Dimensiones <span>6 / 6</span></div>
+    <div class="meta-item">Contexto <span>Académico · Replicable</span></div>
+    <div class="meta-item">Framework <span>DAMA</span></div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showSection('dimensiones', this)">Dimensiones</button>
+  <button onclick="showSection('umbrales', this)">Umbrales</button>
+  <button onclick="showSection('hallazgos', this)">Hallazgos</button>
+  <button onclick="showSection('herramientas', this)">Herramientas</button>
+</nav>
+
+<main>
+
+  <!-- DIMENSIONES -->
+  <div id="dimensiones" class="section active">
+    <h2 class="sec-title">Las 6 Dimensiones</h2>
+    <p class="sec-desc">Definiciones, fórmulas de medición y ejemplos aplicados al contexto textil colombiano.</p>
+
+    <div class="dimensions-grid">
+
+      <!-- 1. Exactitud -->
+      <div class="dim-card">
+        <div class="dim-header">
+          <div class="dim-num">1</div>
+          <div class="dim-name">Exactitud<small>Accuracy</small></div>
+        </div>
+        <div class="dim-body">
+          <p class="dim-def">Los datos son precisos y cercanos a la realidad, sin errores respecto a una fuente de verdad o validación manual.</p>
+          <div class="formula-box">
+            Exactitud (%) = (Registros correctos / Total muestreados) × 100
+          </div>
+          <span class="example-tag">Ejemplo ventas</span>
+          <p class="example-text">En una muestra de 500 órdenes de venta comparadas contra el sistema transaccional, 450 tienen cantidades exactas → <strong>Exactitud = 90%</strong>. El 10% restante genera errores en pronósticos de demanda e inventario.</p>
+        </div>
+      </div>
+
+      <!-- 2. Integridad -->
+      <div class="dim-card">
+        <div class="dim-header">
+          <div class="dim-num">2</div>
+          <div class="dim-name">Integridad<small>Completeness</small></div>
+        </div>
+        <div class="dim-body">
+          <p class="dim-def">No faltan valores necesarios; todos los campos requeridos están presentes y no son nulos.</p>
+          <div class="formula-box">
+            Integridad (%) = (Valores no nulos / Total registros requeridos) × 100
+          </div>
+          <span class="example-tag">Ejemplo producción</span>
+          <p class="example-text">En un dataset de 1000 órdenes de producción, 150 no tienen registrado el campo "tiempo de ciclo" capturado por sensores → <strong>Integridad = 85%</strong>. Dificulta el análisis de eficiencia operativa y el mantenimiento predictivo.</p>
+        </div>
+      </div>
+
+      <!-- 3. Coherencia -->
+      <div class="dim-card">
+        <div class="dim-header">
+          <div class="dim-num">3</div>
+          <div class="dim-name">Coherencia<small>Consistency</small></div>
+        </div>
+        <div class="dim-body">
+          <p class="dim-def">Los datos son consistentes internamente y siguen reglas uniformes entre tablas o fuentes relacionadas.</p>
+          <div class="formula-box">
+            Coherencia (%) = (Registros con consistencia cruzada / Total evaluados) × 100
+          </div>
+          <span class="example-tag">Ejemplo ventas</span>
+          <p class="example-text">En 500 registros de ventas, 450 tienen el campo "ciudad del cliente" idéntico entre la tabla de pedidos y la tabla maestra de clientes → <strong>Coherencia = 90%</strong>. Las inconsistencias afectan la segmentación comercial y la distribución logística.</p>
+        </div>
+      </div>
+
+      <!-- 4. Puntualidad -->
+      <div class="dim-card">
+        <div class="dim-header">
+          <div class="dim-num">4</div>
+          <div class="dim-name">Puntualidad<small>Timeliness</small></div>
+        </div>
+        <div class="dim-body">
+          <p class="dim-def">Los datos son actuales y disponibles cuando se necesitan, dentro del plazo esperado del proceso.</p>
+          <div class="formula-box">
+            Puntualidad (%) = (Registros a tiempo / Total requeridos) × 100<br>
+            Latencia prom. = Σ(días retraso) / N registros
+          </div>
+          <span class="example-tag">Ejemplo producción</span>
+          <p class="example-text">De 1000 registros de producción, 920 fueron reportados dentro de las 48 horas posteriores al cierre del turno → <strong>Puntualidad = 92%</strong>. Los retrasos superiores a 3 días impiden tomar acciones correctivas oportunas sobre fallas detectadas.</p>
+        </div>
+      </div>
+
+      <!-- 5. Unicidad -->
+      <div class="dim-card">
+        <div class="dim-header">
+          <div class="dim-num">5</div>
+          <div class="dim-name">Unicidad<small>Uniqueness</small></div>
+        </div>
+        <div class="dim-body">
+          <p class="dim-def">No hay duplicados; cada registro es único e irrepetible dentro del dataset evaluado.</p>
+          <div class="formula-box">
+            Unicidad (%) = (Registros únicos / Total registros) × 100
+          </div>
+          <span class="example-tag">Ejemplo calidad</span>
+          <p class="example-text">En un dataset de 200 registros de no conformidades, el 12% corresponde a registros duplicados por doble digitación → <strong>Unicidad = 88%</strong>. El análisis de frecuencia de defectos queda sesgado y las prioridades de mejora se distorsionan.</p>
+        </div>
+      </div>
+
+      <!-- 6. Validez -->
+      <div class="dim-card">
+        <div class="dim-header">
+          <div class="dim-num">6</div>
+          <div class="dim-name">Validez<small>Validity</small></div>
+        </div>
+        <div class="dim-body">
+          <p class="dim-def">Los datos cumplen con formatos, rangos y reglas predefinidas del negocio o del sistema.</p>
+          <div class="formula-box">
+            Validez (%) = (Registros con formato/regla correcta / Total evaluados) × 100
+          </div>
+          <span class="example-tag">Ejemplo catálogo</span>
+          <p class="example-text">De 800 registros de productos, 720 usan la nomenclatura de categoría estandarizada (CAT-A, CAT-B, CAT-C) y 80 tienen texto libre no controlado ("grande", "especial") → <strong>Validez = 90%</strong>. Genera errores en clasificación y reportes de inventario.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- UMBRALES -->
+  <div id="umbrales" class="section">
+    <h2 class="sec-title">Umbrales Aceptables</h2>
+    <p class="sec-desc">Referenciados en estándares DAMA, ajustados al contexto textil colombiano y criticidad del proceso.</p>
+
+    <div class="threshold-intro">
+      Los umbrales varían según el impacto del proceso: <strong>>95% para datos críticos</strong> (inventarios, pagos, alertas de sensores), <strong>85–95% para operativos</strong>, y <strong><85% requiere acción inmediata</strong>. Se priorizan los procesos donde un dato tardío o incorrecto pueda generar fallas en cadena o pérdidas de trazabilidad.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Dimensión</th>
+          <th>Umbral Aceptable</th>
+          <th>Nivel</th>
+          <th>Acción si < Umbral</th>
+          <th>Ejemplo Textil</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Integridad</td>
+          <td>>95%</td>
+          <td><span class="badge badge-red">Crítico</span></td>
+          <td>Limpieza inmediata de campos nulos</td>
+          <td>>95% en campos clave de registros de producción (ej. tiempo de ciclo, operario, turno)</td>
+        </tr>
+        <tr>
+          <td>Exactitud</td>
+          <td>>90%</td>
+          <td><span class="badge badge-orange">Operativo</span></td>
+          <td>Validación cruzada con ERP</td>
+          <td>>90% de cantidades en órdenes de venta coinciden con el sistema transaccional</td>
+        </tr>
+        <tr>
+          <td>Unicidad</td>
+          <td>>98%</td>
+          <td><span class="badge badge-red">Crítico</span></td>
+          <td>Deduplicación automática</td>
+          <td><2% de registros duplicados en bases de no conformidades o reclamos</td>
+        </tr>
+        <tr>
+          <td>Validez</td>
+          <td>>92%</td>
+          <td><span class="badge badge-orange">Operativo</span></td>
+          <td>Aplicar reglas de formato</td>
+          <td>>92% de registros con nomenclatura de categorías estandarizada en el catálogo</td>
+        </tr>
+        <tr>
+          <td>Coherencia</td>
+          <td>>90%</td>
+          <td><span class="badge badge-orange">Operativo</span></td>
+          <td>Reconciliación entre tablas maestras</td>
+          <td>>90% de ciudades del cliente coinciden entre tabla de pedidos y tabla maestra</td>
+        </tr>
+        <tr>
+          <td>Puntualidad</td>
+          <td>>90% / <2 días</td>
+          <td><span class="badge badge-green">Monitorear</span></td>
+          <td>Revisar flujos de carga de datos</td>
+          <td>Lotes de producción reportados dentro de las 48h posteriores a la entrega</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- HALLAZGOS -->
+  <div id="hallazgos" class="section">
+    <h2 class="sec-title">Hallazgos por Proceso</h2>
+    <p class="sec-desc">Resultados ilustrativos de una evaluación de calidad de datos en procesos de producción, ventas y gestión de reclamos.</p>
+
+    <div class="findings-note">
+      <strong>Resumen ejecutivo:</strong> Calidad global estimada 89%. Tres dimensiones por debajo del umbral óptimo: Integridad (82%), Exactitud en ventas (87%) y Unicidad en reclamos (88%). Se requieren acciones correctivas priorizadas en producción y gestión de no conformidades.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Dimensión</th>
+          <th>Proceso</th>
+          <th>Métrica</th>
+          <th>Hallazgo Específico</th>
+          <th>Impacto Operativo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Integridad</td>
+          <td>Producción</td>
+          <td><span class="badge badge-red">82%</span></td>
+          <td>180/1000 registros de producción sin campo "tiempo de ciclo" capturado</td>
+          <td class="impact-chip">Impide calcular indicadores de eficiencia y detectar cuellos de botella</td>
+        </tr>
+        <tr>
+          <td>Exactitud</td>
+          <td>Ventas</td>
+          <td><span class="badge badge-red">87%</span></td>
+          <td>65/500 órdenes de venta con cantidades que no coinciden con el sistema transaccional</td>
+          <td class="impact-chip">Distorsión en reportes de inventario y proyecciones de demanda</td>
+        </tr>
+        <tr>
+          <td>Unicidad</td>
+          <td>Reclamos</td>
+          <td><span class="badge badge-red">88%</span></td>
+          <td>12% de registros duplicados en la base de no conformidades por doble digitación</td>
+          <td class="impact-chip">Análisis de defectos sesgado y prioridades de mejora incorrectas</td>
+        </tr>
+        <tr>
+          <td>Coherencia</td>
+          <td>Ventas</td>
+          <td><span class="badge badge-orange">88%</span></td>
+          <td>60/500 registros con ciudad del cliente inconsistente entre tablas relacionadas</td>
+          <td class="impact-chip">Errores en segmentación y distribución logística</td>
+        </tr>
+        <tr>
+          <td>Puntualidad</td>
+          <td>Producción</td>
+          <td><span class="badge badge-orange">92%</span></td>
+          <td>80/1000 registros de producción reportados más de 48h después del cierre de turno</td>
+          <td class="impact-chip">Retraso en acciones correctivas sobre fallas detectadas por sensores</td>
+        </tr>
+        <tr>
+          <td>Validez</td>
+          <td>Catálogo</td>
+          <td><span class="badge badge-orange">90%</span></td>
+          <td>80/800 registros de productos con nomenclatura de categoría no estandarizada</td>
+          <td class="impact-chip">Errores en clasificación, reportes y automatización de procesos</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:1.5rem; background:white; border:1px solid var(--rule); padding:1.25rem 1.5rem; border-radius:2px;">
+      <p style="font-family:'DM Serif Display',serif; font-size:1rem; margin-bottom:0.5rem;">Acciones Recomendadas</p>
+      <p style="font-size:13px; color:#555; line-height:1.6;">
+        1. <strong>Producción:</strong> Implementar validación obligatoria de campos clave (tiempo de ciclo, operario, turno) en la captura de datos, idealmente con integración a sensores IoT.<br>
+        2. <strong>Ventas:</strong> Cruzar automáticamente las cantidades de las órdenes contra el sistema transaccional antes de cerrar el período contable.<br>
+        3. <strong>Reclamos y no conformidades:</strong> Aplicar reglas de deduplicación por número de caso + fecha + descripción del defecto.<br>
+        4. <strong>Catálogos y maestros:</strong> Restringir campos de clasificación a listas controladas y validadas, evitando texto libre no controlado.
+      </p>
+    </div>
+  </div>
+
+  <!-- HERRAMIENTAS -->
+  <div id="herramientas" class="section">
+    <h2 class="sec-title">Herramientas de Soporte</h2>
+    <p class="sec-desc">Plataformas comerciales y open source para automatizar la medición y limpieza de las 6 dimensiones.</p>
+
+    <div class="summary-bar">
+      <div class="summary-item"><span class="summary-val">5</span><span class="summary-lbl">Comerciales</span></div>
+      <div class="summary-item"><span class="summary-val">2</span><span class="summary-lbl">Open Source</span></div>
+      <div class="summary-item"><span class="summary-val">IA</span><span class="summary-lbl">Detección anomalías</span></div>
+      <div class="summary-item"><span class="summary-val">RT</span><span class="summary-lbl">Monitoreo real-time</span></div>
+      <div class="summary-item"><span class="summary-val">ML</span><span class="summary-lbl">Perfilado automático</span></div>
+      <div class="summary-item"><span class="summary-val">Free</span><span class="summary-lbl">Opción gratuita</span></div>
+    </div>
+
+    <div class="tools-grid">
+      <div class="tool-card commercial">
+        <div class="tool-type">Comercial</div>
+        <div class="tool-name">Astera Centerprise</div>
+        <p class="tool-desc">Validación con IA, perfilado de errores y monitoreo en tiempo real. Prueba gratuita disponible — ideal para prototipos en análisis textil.</p>
+      </div>
+      <div class="tool-card commercial">
+        <div class="tool-type">Comercial</div>
+        <div class="tool-name">Talend Data Quality</div>
+        <p class="tool-desc">Perfilado con ML, deduplicación automática y scoring de confianza. Integra con bases de datos industriales. Precio personalizado.</p>
+      </div>
+      <div class="tool-card commercial">
+        <div class="tool-type">Comercial · Empresarial</div>
+        <div class="tool-name">Informatica DQ</div>
+        <p class="tool-desc">Coincidencia con IA, limpieza por reglas automáticas y monitoreo continuo. Solución enterprise de alto desempeño, adaptable a sistemas de gestión industrial.</p>
+      </div>
+      <div class="tool-card commercial">
+        <div class="tool-type">Comercial</div>
+        <div class="tool-name">Ataccama ONE</div>
+        <p class="tool-desc">Detección de anomalías con IA, perfilado y limpieza automática. Orientado a grandes volúmenes industriales.</p>
+      </div>
+      <div class="tool-card commercial">
+        <div class="tool-type">Comercial · Empresarial alto</div>
+        <div class="tool-name">IBM InfoSphere QualityStage</div>
+        <p class="tool-desc">Estandarización y coincidencia avanzada automática. Solución robusta para entornos empresariales con múltiples sistemas de gestión integrados.</p>
+      </div>
+      <div class="tool-card open-source">
+        <div class="tool-type">Open Source · Gratuito</div>
+        <div class="tool-name">OpenRefine</div>
+        <p class="tool-desc">Exploración, clustering para inconsistencias y reconciliación externa. Limitada en real-time pero excelente para prototipos con datos textiles.</p>
+      </div>
+      <div class="tool-card open-source">
+        <div class="tool-type">Open Source · Big Data</div>
+        <div class="tool-name">Apache Griffin</div>
+        <p class="tool-desc">Optimizada para grandes volúmenes, métricas automáticas y workflows. Ideal para escalar procesos de producción.</p>
+      </div>
+    </div>
+
+    <div style="background:#f0f5ff; border:1px solid #c8d8f0; border-left:4px solid var(--accent3); padding:1rem 1.25rem; border-radius:0 2px 2px 0; font-size:13.5px; color:#444;">
+      <strong style="color:var(--accent3);">Recomendación de inicio:</strong> Comenzar con <strong>OpenRefine</strong> o la versión gratuita de <strong>Astera</strong> para validar las fórmulas sobre datos reales. Escalar a <strong>Talend</strong> cuando el volumen justifique automatización completa. Integrar con herramientas de BI para dashboards de monitoreo periódico.
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Calidad de Datos · <span>6 Dimensiones</span> · Framework DAMA · Documentación Académica
+</footer>
+
+<script>
+  function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
